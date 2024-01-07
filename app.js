@@ -19,6 +19,10 @@ mongoose.connect("mongodb://127.0.0.1:27017/mestodb");
 
 app.use(router);
 
+app.use("*", (req, res) =>
+  res.status(404).send({ message: "Страницы не существует" })
+);
+
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
 });
