@@ -1,10 +1,26 @@
 import Card from "../models/Card.js";
 
+const {
+  HTTP_STATUS_OK,
+  HTTP_STATUS_CREATED,
+  HTTP_STATUS_BAD_REQUEST,
+  HTTP_STATUS_NOT_FOUND,
+  HTTP_STATUS_INTERNAL_SERVER_ERROR,
+} = require("http2").constants;
+
+// HTTP_STATUS_OK 200 Запрос успешно выполнен.
+// HTTP_STATUS_CREATED 201 Запрос выполнен и привел к созданию нового ресурса.
+// HTTP_STATUS_BAD_REQUEST 400 Не удалось обработать запрос сервером из-за недопустимого синтаксиса.
+// HTTP_STATUS_NOT_FOUND 404 Сервер не нашел ничего, что соответствует запрошенным URI.
+// HTTP_STATUS_INTERNAL_SERVER_ERROR 500 Internal Server Error.
+
 export const getCards = (req, res) => {
   Card.find({})
-    .then((data) => res.send(data))
+    .then((data) => res.status(HTTP_STATUS_OK).send(data))
     .catch((error) =>
-      res.status(500).send({ message: `Ошибка сервера: ${error}` })
+      res
+        .status(HTTP_STATUS_INTERNAL_SERVER_ERROR)
+        .send({ message: `Ошибка сервера: ${error}` })
     );
 };
 
@@ -13,15 +29,24 @@ export const createCard = (req, res) => {
   Card.create({ name, link, owner: req.user._id })
     .then((card) => {
       Card.findById(card._id)
-        .then((data) => res.send(data))
-        .catch(() =>
-          res.status(404).send({ message: "Карточки с таким ID нет" })
+        .populate("owner")
+        .then((data) => res.status(HTTP_STATUS_CREATED).send(data))
+        .catch((error) =>
+          error.name === "CastError"
+            ? res
+                .status(HTTP_STATUS_BAD_REQUEST)
+                .send({ message: error.message })
+            : res
+                .status(HTTP_STATUS_INTERNAL_SERVER_ERROR)
+                .send({ message: `Ошибка сервера: ${error}` })
         );
     })
     .catch((error) =>
       error.name === "ValidationError"
-        ? res.status(400).send({ message: error.message })
-        : res.status(500).send({ message: `Ошибка сервера: ${error.message}` })
+        ? res.status(HTTP_STATUS_BAD_REQUEST).send({ message: error.message })
+        : res
+            .status(HTTP_STATUS_INTERNAL_SERVER_ERROR)
+            .send({ message: `Ошибка сервера: ${error.message}` })
     );
 };
 
@@ -29,12 +54,18 @@ export const deleteCard = (req, res) => {
   Card.findByIdAndDelete(req.params.cardId)
     .then((card) => {
       if (!card) {
-        res.status(404).send({ message: "Карточки с таким Id нет" });
+        res.status(HTTP_STATUS_NOT_FOUND).send({ message: error.message });
         return;
       }
-      res.send({ message: "Карточка удалена" });
+      res.status(HTTP_STATUS_OK).send({ message: "Карточка удалена" });
     })
-    .catch(() => res.status(404).send({ message: "Карточки с таким Id нет" }));
+    .catch((error) =>
+      error.name === "CastError"
+        ? res.status(HTTP_STATUS_BAD_REQUEST).send({ message: error.message })
+        : res
+            .status(HTTP_STATUS_INTERNAL_SERVER_ERROR)
+            .send({ message: `Ошибка сервера: ${error.message}` })
+    );
 };
 
 export const likeCard = (req, res) => {
@@ -45,12 +76,20 @@ export const likeCard = (req, res) => {
   )
     .then((card) => {
       if (!card) {
-        res.status(404).send({ message: "Карточки с таким ID нет" });
+        res
+          .status(HTTP_STATUS_NOT_FOUND)
+          .send({ message: "Карточки с таким ID нет" });
         return;
       }
-      res.send(card);
+      res.status(HTTP_STATUS_OK).send(card);
     })
-    .catch(() => res.status(404).send({ message: "Карточки с таким ID нет" }));
+    .catch((error) =>
+      error.name === "CastError"
+        ? res.status(HTTP_STATUS_BAD_REQUEST).send({ message: error.message })
+        : res
+            .status(HTTP_STATUS_INTERNAL_SERVER_ERROR)
+            .send({ message: `Ошибка сервера: ${error.message}` })
+    );
 };
 
 export const dislikeCard = (req, res) => {
@@ -61,10 +100,18 @@ export const dislikeCard = (req, res) => {
   )
     .then((card) => {
       if (!card) {
-        res.status(404).send({ message: "Карточки с таким ID нет" });
+        res
+          .status(HTTP_STATUS_NOT_FOUND)
+          .send({ message: "Карточки с таким ID нет" });
         return;
       }
-      res.send(card);
+      res.status(HTTP_STATUS_OK).send(card);
     })
-    .catch(() => res.status(404).send({ message: "Карточки с таким ID нет" }));
+    .catch((error) =>
+      error.name === "CastError"
+        ? res.status(HTTP_STATUS_BAD_REQUEST).send({ message: error.message })
+        : res
+            .status(HTTP_STATUS_INTERNAL_SERVER_ERROR)
+            .send({ message: `Ошибка сервера: ${error.message}` })
+    );
 };
