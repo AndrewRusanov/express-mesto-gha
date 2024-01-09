@@ -32,7 +32,7 @@ export const createCard = (req, res) => {
         .populate("owner")
         .then((data) => res.status(HTTP_STATUS_CREATED).send(data))
         .catch((error) =>
-          error.name === "CastError"
+          error
             ? res
                 .status(HTTP_STATUS_BAD_REQUEST)
                 .send({ message: error.message })

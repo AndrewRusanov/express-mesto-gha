@@ -46,7 +46,7 @@ export const getUsersById = (req, res) => {
 export const createUsers = (req, res) => {
   const { name, about, avatar } = req.body;
   User.create({ name, about, avatar })
-    .then((user) => res.status(HTTP_STATUS_OK).send(user))
+    .then((user) => res.status(HTTP_STATUS_CREATED).send(user))
     .catch((error) =>
       error.message === "ValidationError"
         ? res.status(HTTP_STATUS_BAD_REQUEST).send({ message: error.message })
@@ -65,7 +65,7 @@ export const editUserInfo = (req, res) => {
   )
     .then((user) => res.status(HTTP_STATUS_OK).send(user))
     .catch((error) =>
-      error.name === "ValidationError" || error.name === "CastError"
+      error.name === "ValidationError"
         ? res.status(HTTP_STATUS_BAD_REQUEST).send({ message: error.message })
         : res
             .status(HTTP_STATUS_INTERNAL_SERVER_ERROR)
@@ -81,7 +81,7 @@ export const editUserAvatar = (req, res) => {
   )
     .then((user) => res.status(HTTP_STATUS_OK).send(user))
     .catch((error) =>
-      error.name === "ValidationError" || error.name === "CastError"
+      error.name === "ValidationError"
         ? res.status(HTTP_STATUS_BAD_REQUEST).send({ message: error.message })
         : res
             .status(HTTP_STATUS_INTERNAL_SERVER_ERROR)
